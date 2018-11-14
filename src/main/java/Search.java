@@ -1,6 +1,7 @@
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.flexible.standard.QueryParserUtil;
 import org.apache.lucene.search.highlight.InvalidTokenOffsetsException;
+//import org.apache.lucene.search.highlight.InvalidTokenOffsetsException;
 
 import java.io.IOException;
 import java.util.Scanner;
@@ -23,6 +24,11 @@ public class Search {
             String QueryWord = scan.nextLine();
 
             if (QueryWord.equals("quit")) return;
+
+            if ( QueryWord.equals("")) continue;
+
+            if ( QueryWord.equals("\n")) continue;
+
 
             LuceneTest.search(QueryWord);
 

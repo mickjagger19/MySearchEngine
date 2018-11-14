@@ -27,7 +27,8 @@ public class MyCrawler extends WebCrawler {
         String href = url.getURL().toLowerCase();
         return !FILTERS.matcher(href).matches() && ( href.startsWith("https://www.zhihu.com/question"))
                 || ( href.startsWith("https://www.guokr.com/ask/") || href.startsWith("https://www.guokr.com/question/")  )
-                || (href.startsWith("https://zhidao.baidu.com"));
+//                || ( href.startsWith("https://zhidao.baidu.com") && !href.contains("usercenter") && !href.contains("misc")     )
+                || (href.startsWith("https://movie.douban.com/")  );
     }
 
     /**
@@ -44,19 +45,18 @@ public class MyCrawler extends WebCrawler {
                 case Zhihu:{
                     LuceneTest.addZhihuDocument(url);
                     break;
-
                 }
                 case Guokr:{
                     LuceneTest.addGuokrDocument(url);
                     break;
                 }
-
                 case Baidu:{
-
                     LuceneTest.addBaiduDocument(url);
                     break;
-
-
+                }
+                case Douban:{
+                    LuceneTest.addDoubanDocument(url);
+                    break;
                 }
             }
         } catch (IOException e) {

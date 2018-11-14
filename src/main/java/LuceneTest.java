@@ -15,6 +15,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 //import org.apache.lucene.search.highlight.*;
+import org.apache.lucene.search.highlight.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
@@ -83,8 +84,8 @@ public class LuceneTest {
 		answer = doc.select(".RichContent-inner").get(0).text();
 //		System.out.println(answer);
 		date = doc.select(".ContentItem-time").get(0).text();
-		System.out.println(date);
-		author = doc.select(".AuthorInfo-name").get(0).text();
+//		System.out.println(date);
+		author = doc.select(".UserLink-link").get(0).text();
 //		System.out.println(author);
 		like = doc.select(".VoteButton--up").get(0).text().substring(3);
 //		System.out.println(like);
@@ -251,25 +252,132 @@ public class LuceneTest {
 
 		question = doc.select(".ask-title").text();
 
-		Elements answers = doc.select(".gt-answers-mask");
+		Elements answers = doc.select(".answer-text");
+
+
+//		System.out.println(answers.toString());
 
 		Elements dates = doc.select(".wgt-replyer-all-time");
 
 		Elements authors = doc.select(".wgt-replyer-all-uname");
 
-		Elements likes = doc.select(".evaluate-num");
+//		Elements likes = doc.select(".evaluate-num");
 
-		int length = doc.getElementById("v-times").text().length();
+//		System.out.println(doc.getElementById("v-times").toString());
+
+//		int length = doc.getElementById("v-times").text().length();
 
 //		follower = doc.select(".focused-num").get(0).text().substring(0,length-4);
 //		System.out.println(follower);
 
-		viewer = doc.getElementById("v-times").text().substring(3,length-2);
-
-		System.out.println(viewer);
+//		viewer = doc.getElementById("v-times").text().substring(3,length-2);
 
 //		field = doc.select(".post-tags .tag").text();
 //		System.out.println(field);
+
+
+		for ( int i = 0; i<answers.size(); i++){
+
+//			System.out.println("heeee!");
+
+			answer = answers.get(i).text();
+
+			date = dates.get(i).text();
+
+			author = authors.get(i).text();
+
+//			like = likes.get(i).text();
+
+			System.out.println(answer);
+
+			System.out.println(date);
+
+			System.out.println(author);
+
+//			System.out.println(like);
+
+
+			Document newdoc = new Document();
+
+			Field f1=new TextField("question",question, Field.Store.YES);
+			Field f2=new TextField("answer",answer,Field.Store.YES);
+			Field f3=new TextField("date",date,Field.Store.YES);
+			Field f4=new TextField("author",author,Field.Store.YES);
+			Field f5=new StringField("like",like,Field.Store.YES);
+			Field f6=new StringField("follower",follower,Field.Store.YES);
+			Field f7=new StringField("field",field,Field.Store.YES);
+			Field f8=new StringField("viewer",viewer,Field.Store.YES);
+			Field f9=new StringField("link",link,Field.Store.YES);
+
+			newdoc.add(f1);
+			newdoc.add(f2);
+			newdoc.add(f3);
+			newdoc.add(f4);
+			newdoc.add(f5);
+			newdoc.add(f6);
+			newdoc.add(f7);
+			newdoc.add(f8);
+			newdoc.add(f9);
+
+			iwr.addDocument(newdoc);
+
+			iwr.commit();
+
+		}
+
+
+		return;
+	}
+
+
+	public static void addDoubanDocument(String url) throws IOException {
+
+		if  (!url.startsWith("https://movie.douban.com/subject/")) return;
+
+		System.out.println(url_counter++);
+
+		org.jsoup.nodes.Document doc = Jsoup.connect(url).userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36").get();
+
+		String question = "";
+
+		String answer = "";
+
+		String date = "";
+
+		String author = "";
+
+		String like = "";
+
+		String follower = "";
+
+		String field = "";
+
+		String viewer = "";
+
+		String link = url;
+
+		System.out.println(doc.toString());
+
+
+		question = doc.select(".post-title").text()+"(电影)";
+
+		Elements answers = doc.select(".short");
+
+		Elements dates = doc.select(".comment-time");
+
+		Elements authors = doc.select(".comment-info");
+
+		Elements likes = doc.select(".votes");
+
+		int length = doc.select(".rating_people").text().length();
+
+//		System.out.println(doc.select(".rating_people").toString());
+
+		follower = doc.select(".rating_people").text().substring(0,length-3);
+		System.out.println(follower);
+
+		field = doc.getElementById("info").getElementsByTag("span").get(5).text();
+		System.out.println(field);
 
 
 		for ( int i = 0; i<answers.size(); i++){
@@ -323,7 +431,7 @@ public class LuceneTest {
 		return;
 	}
 
-	public static void search(String queryword) throws ParseException, IOException{
+	public static void search(String queryword) throws ParseException, IOException, InvalidTokenOffsetsException {
 
 		File f=new File(filePath);
 
@@ -336,26 +444,38 @@ public class LuceneTest {
         Query query=parser.parse(queryword);
         TopDocs hits=searcher.search(query,5);//前面几行代码也是固定套路，使用时直接改field和关键词即可
 
-//		QueryScorer scorer = new QueryScorer(query);
+		QueryScorer scorer = new QueryScorer(query,fields[1]);
+
+
+		SimpleHTMLFormatter simpleHTMLFormatter = new SimpleHTMLFormatter("<span color='red'>", "</span>");
 //
-//		SimpleHTMLFormatter simpleHTMLFormatter = new SimpleHTMLFormatter("<font color='red'>", "</font>");
-//
-//		Highlighter highlighter =  new Highlighter(scorer);
+		Highlighter highlighter =  new Highlighter(simpleHTMLFormatter,scorer);
 //
 //		highlighter.setTextFragmenter(new SimpleSpanFragmenter(scorer));
 
+		int answer_counter = 0;
+
+		long starttime = System.currentTimeMillis();
 
 		for(ScoreDoc doc:hits.scoreDocs){
+
+			if (doc.score < 0.2) continue;
 
             Document d=searcher.doc(doc.doc);
 
 //            String question = d.get("question");
 //
-//			TokenStream tokenStream=analyzer.tokenStream("question", question);
+			TokenStream tokenStream= TokenSources.getAnyTokenStream(searcher.getIndexReader(),doc.doc,fields[1],analyzer);
 //
 //			System.out.println(highlighter.getBestFragment(tokenStream, question));
 
+			Fragmenter fragment = new SimpleSpanFragmenter(scorer);
+
+			highlighter.setTextFragmenter(fragment);
+
 			ps.println();
+
+			ps.println(++answer_counter+":");
 
             ps.println("问题: " + d.get("question"));
 
@@ -366,10 +486,10 @@ public class LuceneTest {
 			ps.println("作者: " + d.get("author"));
 
 			if ( d.get("answer").length() < 70) {
-				ps.println("回答: " + d.get("answer"));
+				ps.println("回答: " + highlighter.getBestFragment(tokenStream,d.get("answer")));
 			}
 			else{
-				ps.print("回答: " + d.get("answer").substring(0,70));
+				ps.print("回答: " + highlighter.getBestFragment(tokenStream,d.get("answer")).substring(0,70));
 				ps.println("...");
 			}
 
@@ -379,9 +499,18 @@ public class LuceneTest {
 
 			ps.println("链接: " + d.get("link"));
 
-			ps.println();
+			ps.println("匹配度: "+ doc.score);
+
 
         }
+
+		long endtime = System.currentTimeMillis();
+
+		ps.println();
+
+        ps.println("共 " + answer_counter + " 条结果，用时 " +  ( endtime-starttime ) + " 毫秒");
+
+		ps.println();
 
 
 	}

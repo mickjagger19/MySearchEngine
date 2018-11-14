@@ -15,7 +15,7 @@ public class Controller {
     public static void main(String[] args) throws Exception {
 
 
-        current_web = website.Baidu;
+        current_web = website.Zhihu;
 
         LuceneTest.start();
 
@@ -31,7 +31,7 @@ public class Controller {
 
         switch (current_web){
             case Zhihu:{
-                numberOfCrawlers = 10;
+                numberOfCrawlers = 20;
                 break;
             }
             case Guokr:{
@@ -40,6 +40,11 @@ public class Controller {
                 break;
             }
             case Baidu:{
+                numberOfCrawlers = 10;
+                break;
+            }
+
+            case Douban:{
                 numberOfCrawlers = 10;
                 break;
             }
@@ -53,12 +58,12 @@ public class Controller {
 
         controller = new CrawlController(config, pageFetcher, robotstxtServer);
 
-        addSeedZhihu();
 
         switch (current_web){
-            case Zhihu:{addSeedZhihu();}
-            case Guokr:{addSeedGuokr();}
-            case Douban:{addSeedDouban();}
+            case Zhihu:{addSeedZhihu();break;}
+            case Guokr:{addSeedGuokr();break;}
+            case Baidu:{addSeedBaidu();break;}
+            case Douban:{addSeedDouban();break;}
         }
 
         /*
@@ -87,21 +92,17 @@ public class Controller {
         controller.addSeed("https://www.guokr.com/ask/newest/");
         controller.addSeed("https://www.guokr.com/ask/highlight/");
         controller.addSeed("https://www.guokr.com/ask/popular/");
-//        controller.addSeed("https://www.guokr.com/ask/tag/专业/");
-//        controller.addSeed("https://www.guokr.com/ask/tag/高考/");
-//        controller.addSeed("https://www.guokr.com/ask/tag/心理学/");
-//        controller.addSeed("https://www.guokr.com/ask/tag/生活/");
-//        controller.addSeed("https://www.guokr.com/ask/tag/category/hot/");
-
 
     }
 
     public static void addSeedDouban(){
+
         controller.addSeed("https://movie.douban.com");
-        controller.addSeed("https://www.zhihu.com");
-        controller.addSeed("https://www.zhihu.com/hot");
-        controller.addSeed("https://www.zhihu.com/explore");
-        controller.addSeed("https://www.zhihu.com/topic");
+        controller.addSeed("https://movie.douban.com/chart");
+        controller.addSeed("https://movie.douban.com/tag/#//");
+        controller.addSeed("https://movie.douban.com/review/best/");
+        controller.addSeed("https://movie.douban.com/explore#!type=movie&tag=热门&sort=recommend&page_limit=20&page_start=0");
+        controller.addSeed("https://movie.douban.com/subject/26916229/");
     }
 
 
